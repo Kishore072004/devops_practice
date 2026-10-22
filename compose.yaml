@@ -1,0 +1,7 @@
+services:
+  api:
+    build: .
+    image: devops-fastapi-demo:local
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

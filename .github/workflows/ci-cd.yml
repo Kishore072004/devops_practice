@@ -1,9 +1,8 @@
-name: FastAPI CI
+name: FastAPI CI CD
 
 on:
   push:
     branches: [main]
-
   pull_request:
     branches: [main]
 
@@ -29,3 +28,31 @@ jobs:
 
       - name: Run tests
         run: python -m unittest -v
+
+  publish:
+    name: Build and publish Docker image
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-fastapi-demo:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-fastapi-demo:${{ github.sha }}
